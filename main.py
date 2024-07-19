@@ -7,11 +7,13 @@ from os import system as _sys, name as _name, getcwd
 import ctypes
 import sys
 import json
-from Utilities import *  # Assuming you have relevant utility functions
+
+from Utilities.UtilFunctions import *  # Assuming you have relevant utility functions
+from Utilities.HandleSearch import search_interface
 
 base_path: str = getcwd()
 save_data: dict = {}
-version: str = '1.1'
+version: str = '1.2'
 dev: str = 'callmepvp @ github'
 
 # Utility Functions for CMD
@@ -185,11 +187,13 @@ def addNewWeapon():
     print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Gun template created.")
 
     #Request the info
-    gunData['ID'] = request_input(
+    """gunData['ID'] = request_input(
         f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the NAME or ID of the weapon: ",
-        [lambda x: is_valid_id(x) or is_valid_name(x)], 
-        transform_to_id     
-    )
+        [lambda x: is_valid_id(x, "#GUN") or is_valid_name(x, "#GUN")], 
+        lambda x: transform_to_id(x, "#GUN")   
+    )"""
+    selectedID = search_interface()
+    gunData['ID'] = int(selectedID)
     
     if gunData['ID'] is None: 
         return
@@ -217,31 +221,48 @@ def addNewWeapon():
         print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} For every augment slot ({gunData['AugmentSlots']}), choose its level and type (ID!): ")
         for i in range(1, gunData['AugmentSlots'] + 1):
             gunData[f"Augment{i}ID"] = request_input(
-                f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Type (ID!) for slot {i} [1-11]: ",
-                [is_valid_integer, is_NZinteger, is_less_than(12)],
-                to_integer
+                f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Type for slot {i} [1-11]: ",
+                [lambda x: is_valid_id(x, "#AUG") or is_valid_name(x, "#AUG")],
+                lambda x: transform_to_id(x, "#AUG")
             )
-            #! MAKE IT SO TYPES CAN BE INPUTTED WITH NAMES TOO
 
             gunData[f"Augment{i}LVL"] = request_input(
                 f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Level for slot {i} [0-Grade]: ",
                 [is_valid_integer, is_less_than(gunData["Grade"]+1)],
                 to_integer
             )
-    
-    print(gunData)
-    time.sleep(10)
+
+    #Add gun data to main data
+    highestInvIndex = len(weaponData) - 1 #Minus 1 for index
+    gunData['InventoryIndex'] = highestInvIndex + 1
+    gunData['Seen'] = True
+
+    weaponData.append(gunData)
+    updateJSONField("decoded_profile.json", "Inventory.Profile0.Weapons", weaponData)
+
+    print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Successfully created weapon '{gunIDMap.get(gunData['ID'])}'.")
+    time.sleep(3)
 
 @option("Edit Equipment.")
 def editEquipment():
     print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} WIP...")
+
+@option("Save And Export.")
+def saveAndExport():
+    pass
+
+@option("View Changelog.")
+def viewChangelog():
+    displayWithoutOptions("View Changelog")
 
 #* MAIN
 if __name__ == "__main__":
     #Main Menu
     main_menu = Menu("Main Menu", {
         "changeLoadout": changeLoadout,
-        "changeMoney": changeMoney
+        "changeMoney": changeMoney,
+        "saveAndExport": saveAndExport,
+        "viewChangelog": viewChangelog
     })
 
     # Run the main menu

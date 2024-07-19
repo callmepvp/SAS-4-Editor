@@ -26,36 +26,63 @@ gunIDMap = {
     8: "RIA T7",
     9: "RIA 313",
     10: "Ronson 65-a",
+    11: "CM 307",
+    12: "Sub-light COM2",
+    13: "Stripper",
+    14: "RIA 20 Para",
+    15: "CM Gigavolt",
+    16: "Poison Claw",
+    17: "HVM 002",
+    18: "Ronson WP Flamethrower",
+    19: "Ronson 55",
+    20: "CM 505",
+    21: "CM 205",
+    22: "HVM 001",
+    23: "CM 202",
+    24: "CM 351 Sunflare",
+    25: "Ronson LBM",
+    26: "Mixmaster",
+    28: "Hard Thorn",
+    29: "RIA 30 Strikeforce",
+    30: "RIA 7",
+    31: "HVM 005 G-Class",
+    33: "Gebirgskanone",
+    34: "HVM MPG",
+    35: "HVM 004"
+}
+
+augmentIDMap = {
+    1: "Deadly",
+    2: "Piercing",
+    3: "Adaptive",
+    4: "Enlarged",
+    5: "Pinpoint",
+    6: "Overclocked",
+    7: "Tenacious",
+    8: "Capacity",
+    9: "Race Modded",
+    10: "Skeletonized",
+    11: "Biosynthesis"
 }
 
 #* UTIL FUNCTIONS
 from typing import Callable, Any, List
 
-def request_input(
-    prompt: str, 
-    validate_funcs: List[Callable[[str], bool]], 
-    transform_func: Callable[[str], Any], 
-    exit_command: str = "e"
-) -> Any:
-    """
-    Requests input from the user, validates it using a list of validation functions, transforms it using transform_func,
-    and allows for an exit command.
-
-    :param prompt: The prompt message to display to the user.
-    :param validate_funcs: A list of functions that take the input as a string and return True if it is valid.
-    :param transform_func: A function that takes the input as a string and transforms it to the desired type.
-    :param exit_command: The command that will exit the input loop (default is "e").
-    :return: The transformed input if all validations pass, or None if the exit command is used.
-    """
+def request_input(prompt: str, validate_funcs: List[Callable[[str], bool]], transform_func: Callable[[str], any]) -> any:
+    """Request input from the user with validation and transformation."""
     while True:
-        choice = input(prompt).strip()
-        if choice.lower() == exit_command:
+        choice = input(prompt)
+        if choice.lower() == "e":
             print("Exiting the input process.")
             return None
         
-        # Check if all validation functions pass
-        if all(validate_func(choice) for validate_func in validate_funcs):
-            return transform_func(choice)
+        # Check all validation functions
+        if all(func(choice) for func in validate_funcs):
+            transformed_value = transform_func(choice)
+            if transformed_value is not None:
+                return transformed_value
+            else:
+                print("Transformation failed. Please try again.")
         else:
             print("Invalid input! Please try again.")
 
@@ -75,16 +102,30 @@ def is_less_than(max_value: int) -> Callable[[str], bool]:
         return int(value) < max_value
     return validate
 
-def is_valid_id(value: str) -> bool:
-    """Check if the value is a valid ID in the gunIDMap."""
+def is_valid_id(value: str, type: str) -> bool:
+    """Check if the value is a valid ID in the given map."""
     if value.isdigit():
         id_value = int(value)
-        return id_value in gunIDMap
+
+        if type == "#GUN":
+            return id_value in gunIDMap
+        elif type == "#AUG":
+            if is_NZinteger(value) and is_less_than(12):
+                return id_value in augmentIDMap
+            else:
+                return False
+        else:
+            return False
     return False
 
-def is_valid_name(value: str) -> bool:
-    """Check if the value is a valid name in the gunIDMap."""
-    return value in gunIDMap.values()
+def is_valid_name(value: str, type: str) -> bool:
+    """Check if the value is a valid name in the given map."""
+    if type == "#GUN":
+        return value in gunIDMap.values()
+    elif type == "#AUG":
+        return value in augmentIDMap.values()
+    else:
+        return False
 
 def to_integer(value: str) -> int:
     return int(value)
@@ -95,15 +136,22 @@ def is_non_empty_string(value: str) -> bool:
 def to_string(value: str) -> str:
     return value.strip()
 
-def transform_to_id(value: str) -> Optional[int]:
+def transform_to_id(value: str, type: str) -> Optional[int]:
     """Transform the value to an ID. Returns the ID if the value is valid, or None if invalid."""
+    if type == "#GUN":
+        id_map = gunIDMap
+    elif type == "#AUG":
+        id_map = augmentIDMap
+    else:
+        return None
+
     if value.isdigit():
         id_value = int(value)
-        if id_value in gunIDMap:
+        if id_value in id_map:
             return id_value
-    elif is_valid_name(value):
+    elif value in id_map.values():
         # Find the ID corresponding to the name
-        for id_value, name in gunIDMap.items():
+        for id_value, name in id_map.items():
             if name == value:
                 return id_value
     return None
@@ -202,4 +250,4 @@ def updateJSONField(file_path: str, field_path: str, new_value):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
     
-    print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Successfully updated '{field_path}' to '{new_value}'.")
+    print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} JSONUpdate function-call successful.")
