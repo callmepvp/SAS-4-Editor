@@ -2,7 +2,7 @@ import os
 import json
 from prettytable import PrettyTable
 from colorama import Fore, Style
-from typing import Callable, Optional
+from typing import Callable, Optional, List, Dict
 
 #* DATA SETS
 gunDataSet = {
@@ -65,8 +65,40 @@ augmentIDMap = {
     11: "Biosynthesis"
 }
 
+changelog_entries: List[Dict[str, str]] = [
+    {
+        "version": "1.2",
+        "date": "20.07.24",
+        "changes": [
+            "Finished the feature of adding new weapons.",
+            "Prettified the GUI.",
+            "Added search feature for weapons.",
+            "Added the changelog."
+        ]
+    },
+    {
+        "version": "1.1",
+        "date": "19.07.24",
+        "changes": [
+            "Added the basics of adding new weaponry."
+        ]
+    },
+    {
+        "version": "1.0",
+        "date": "19.07.24",
+        "changes": [
+            "Added main code and basic encoding/decoding."
+        ]
+    }
+]
+
 #* UTIL FUNCTIONS
-from typing import Callable, Any, List
+def print_changelog_entry(entry: Dict[str, str]):
+    """Print a single changelog entry."""
+    print(f"{Fore.LIGHTCYAN_EX}Version {entry['version']}{Fore.LIGHTWHITE_EX} | {Fore.LIGHTMAGENTA_EX}{entry['date']}{Fore.LIGHTWHITE_EX}")
+    for change in entry['changes']:
+        print(f"» {change}")
+    print()
 
 def request_input(prompt: str, validate_funcs: List[Callable[[str], bool]], transform_func: Callable[[str], any]) -> any:
     """Request input from the user with validation and transformation."""

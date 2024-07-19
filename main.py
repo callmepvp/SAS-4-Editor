@@ -1,51 +1,10 @@
-from asyncio import sleep
 import copy
-from ctypes import windll, wintypes
 import time
 from colorama import Fore
-from os import system as _sys, name as _name, getcwd
-import ctypes
-import sys
-import json
 
-from Utilities.UtilFunctions import *  # Assuming you have relevant utility functions
+from Utilities.UtilFunctions import *
 from Utilities.HandleSearch import search_interface
-
-base_path: str = getcwd()
-save_data: dict = {}
-version: str = '1.2'
-dev: str = 'callmepvp @ github'
-
-# Utility Functions for CMD
-def cmd_title(title: str) -> None:
-    return windll.kernel32.SetConsoleTitleW(f'Vortex ver. {version} | {title}')
-
-def clear_screen():
-    _sys('cls' if _name == 'nt' else 'clear')
-
-def set_console_size(width, height):
-    hWnd = ctypes.windll.kernel32.GetConsoleWindow()
-    if hWnd == 0:
-        raise Exception("Failed to get console window handle")
-
-    hStdOut = ctypes.windll.kernel32.GetStdHandle(-11)
-    buffer_size = wintypes._COORD(width, height)
-    ctypes.windll.kernel32.SetConsoleScreenBufferSize(hStdOut, buffer_size)
-
-    rect = ctypes.wintypes.SMALL_RECT(0, 0, width - 1, height - 1)
-    ctypes.windll.kernel32.SetConsoleWindowInfo(hStdOut, True, ctypes.byref(rect))
-
-def disable_resizing():
-    hWnd = ctypes.windll.kernel32.GetConsoleWindow()
-    if hWnd == 0:
-        raise Exception("Failed to get console window handle")
-
-    GWL_STYLE = -16
-    WS_SIZEBOX = 0x00040000
-    style = ctypes.windll.user32.GetWindowLongW(hWnd, GWL_STYLE)
-    style &= ~WS_SIZEBOX
-    ctypes.windll.user32.SetWindowLongW(hWnd, GWL_STYLE, style)
-    ctypes.windll.user32.SetWindowPos(hWnd, None, 0, 0, 0, 0, 0x0027)  # SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED
+from Utilities.HandleLifecycle import *
 
 class Menu:
     def __init__(self, title, options, optionalText = None):
@@ -143,7 +102,7 @@ def changeMoney():
             break
         if checkInteger(choice):
             updateJSONField('decoded_profile.json', 'Inventory.Profile0.Money', int(choice))
-            time.sleep(2.5)
+            time.sleep(2)
         else:
             print(f"{Fore.LIGHTRED_EX}Invalid input!{Fore.LIGHTWHITE_EX}")
             time.sleep(1)
@@ -217,7 +176,7 @@ def addNewWeapon():
         return
     
     #Deal with augment data
-    if gunData['AugmentSlots'] is not 0:
+    if gunData['AugmentSlots'] != 0:
         print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} For every augment slot ({gunData['AugmentSlots']}), choose its level and type (ID!): ")
         for i in range(1, gunData['AugmentSlots'] + 1):
             gunData[f"Augment{i}ID"] = request_input(
@@ -255,14 +214,32 @@ def saveAndExport():
 def viewChangelog():
     displayWithoutOptions("View Changelog")
 
+    print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Changelog:\n")
+    
+    for entry in changelog_entries:
+        print_changelog_entry(entry)
+
+    while True:
+        choice = input("Type 'e' to go back: ")
+        if choice == 'e':
+            break
+
+@option("View Settings.")
+def viewSettings():
+    pass
+
 #* MAIN
 if __name__ == "__main__":
+    from Utilities.HandleLifecycle import initiateStartUp
+    initiateStartUp()
+
     #Main Menu
     main_menu = Menu("Main Menu", {
         "changeLoadout": changeLoadout,
         "changeMoney": changeMoney,
         "saveAndExport": saveAndExport,
-        "viewChangelog": viewChangelog
+        "viewChangelog": viewChangelog,
+        "viewSettings": viewSettings
     })
 
     # Run the main menu

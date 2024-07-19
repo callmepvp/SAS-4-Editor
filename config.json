@@ -1,5 +1,8 @@
 {
+    "REPO_OWNER": "callmepvp",
+    "REPO_NAME": "SAS-4-Editor",
     "current_profile": "Profile0",
     "steam_user_id": 76561198299512367,
-    "updater": true
+    "updater": true,
+    "version": "1.2"
 }
