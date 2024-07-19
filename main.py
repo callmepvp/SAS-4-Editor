@@ -11,7 +11,7 @@ from Utilities import *  # Assuming you have relevant utility functions
 
 base_path: str = getcwd()
 save_data: dict = {}
-version: str = '1.0'
+version: str = '1.1'
 dev: str = 'callmepvp @ github'
 
 # Utility Functions for CMD
@@ -187,16 +187,16 @@ def addNewWeapon():
     #Request the info
     gunData['ID'] = request_input(
         f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the NAME or ID of the weapon: ",
-        is_integer, 
-        to_integer  
+        [lambda x: is_valid_id(x) or is_valid_name(x)], 
+        transform_to_id     
     )
     
     if gunData['ID'] is None: 
         return
 
     gunData['Grade'] = request_input(
-        f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the GRADE of the weapon: ",
-        is_integer,
+        f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the GRADE of the weapon [0-12]: ",
+        [is_valid_integer, is_less_than(13)],
         to_integer 
     )
     
@@ -204,19 +204,33 @@ def addNewWeapon():
         return
     
     gunData['AugmentSlots'] = request_input(
-        f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the amount of AUGMENT SLOTS: ",
-        is_integer,
+        f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the amount of AUGMENT SLOTS [0-4]: ",
+        [is_valid_integer, is_less_than(5)],
         to_integer 
     )
     
     if gunData['AugmentSlots'] is None:
         return
     
-    print(gunData)
-    time.sleep(3)
-    
-    #! ADD RIGOROUS ID AND NAME CHECKING AND STREAMLINE IT
+    #Deal with augment data
+    if gunData['AugmentSlots'] is not 0:
+        print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} For every augment slot ({gunData['AugmentSlots']}), choose its level and type (ID!): ")
+        for i in range(1, gunData['AugmentSlots'] + 1):
+            gunData[f"Augment{i}ID"] = request_input(
+                f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Type (ID!) for slot {i} [1-11]: ",
+                [is_valid_integer, is_NZinteger, is_less_than(12)],
+                to_integer
+            )
+            #! MAKE IT SO TYPES CAN BE INPUTTED WITH NAMES TOO
 
+            gunData[f"Augment{i}LVL"] = request_input(
+                f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Level for slot {i} [0-Grade]: ",
+                [is_valid_integer, is_less_than(gunData["Grade"]+1)],
+                to_integer
+            )
+    
+    print(gunData)
+    time.sleep(10)
 
 @option("Edit Equipment.")
 def editEquipment():
