@@ -134,7 +134,17 @@ def editWeapon():
 @option("Edit Existing Weapon.")
 def editExistingWeapon():
     displayWithoutOptions("Edit Existing Weapon")
-    choice = input(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the 'Identifier' number of the weapon: ")
+    json_data = readJSONFile("decoded_profile.json")
+    weaponData = json_data['Inventory']['Profile0']['Weapons']
+    
+    #Get all weapons
+    weapons = []
+    for item in weaponData:
+        weapons.append(item)
+
+    displayWeapons(weapons)
+    #TODO add search for the weapon to change
+    time.sleep(2)
 
 @option("Add New Weapon.")
 def addNewWeapon():
@@ -151,14 +161,14 @@ def addNewWeapon():
         [lambda x: is_valid_id(x, "#GUN") or is_valid_name(x, "#GUN")], 
         lambda x: transform_to_id(x, "#GUN")   
     )"""
-    selectedID = search_interface()
+    selectedID = search_interface(gunIDMap)
     gunData['ID'] = int(selectedID)
     
     if gunData['ID'] is None: 
         return
 
     gunData['Grade'] = request_input(
-        f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the GRADE of the weapon [0-12]: ",
+        f"\n{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the GRADE of the weapon [0-12]: ",
         [is_valid_integer, is_less_than(13)],
         to_integer 
     )
@@ -167,7 +177,7 @@ def addNewWeapon():
         return
     
     gunData['AugmentSlots'] = request_input(
-        f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the amount of AUGMENT SLOTS [0-4]: ",
+        f"\n{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the amount of AUGMENT SLOTS [0-4]: ",
         [is_valid_integer, is_less_than(5)],
         to_integer 
     )
@@ -177,13 +187,15 @@ def addNewWeapon():
     
     #Deal with augment data
     if gunData['AugmentSlots'] != 0:
-        print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} For every augment slot ({gunData['AugmentSlots']}), choose its level and type (ID!): ")
+        print(f"\n{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} For every augment slot ({gunData['AugmentSlots']}), choose its level and type (ID!): ")
         for i in range(1, gunData['AugmentSlots'] + 1):
-            gunData[f"Augment{i}ID"] = request_input(
+            """gunData[f"Augment{i}ID"] = request_input(
                 f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Type for slot {i} [1-11]: ",
                 [lambda x: is_valid_id(x, "#AUG") or is_valid_name(x, "#AUG")],
                 lambda x: transform_to_id(x, "#AUG")
-            )
+            )"""
+            selectedAugment = search_interface(augmentIDMap)
+            gunData[f"Augment{i}ID"] = int(selectedAugment)
 
             gunData[f"Augment{i}LVL"] = request_input(
                 f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Level for slot {i} [0-Grade]: ",
@@ -212,21 +224,26 @@ def saveAndExport():
 
 @option("View Changelog.")
 def viewChangelog():
-    displayWithoutOptions("View Changelog")
-
-    print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Changelog:\n")
-    
-    for entry in changelog_entries:
-        print_changelog_entry(entry)
-
     while True:
+        displayWithoutOptions("View Changelog")
+
+        print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Changelog:\n")
+        
+        for entry in changelog_entries:
+            print_changelog_entry(entry)
         choice = input("Type 'e' to go back: ")
         if choice == 'e':
             break
+        else:
+            print(f"{Fore.LIGHTRED_EX}Invalid input!{Fore.LIGHTWHITE_EX}")
+            time.sleep(1)
+
 
 @option("View Settings.")
 def viewSettings():
     pass
+    #TODO settings for updater toggle (off), save file path (game folder), backup file path (files folder), autosave toggle, session file path (files folder)
+    #TODO Autosave idea: after every major change within the program (eg changing something), the program will automatically run the save and verification process for full .save conversion
 
 #* MAIN
 if __name__ == "__main__":

@@ -18,18 +18,22 @@ def displayWithoutOptions(title): #COPY
    ░▒▓██▓▒░   ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░   ░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░ 
                  { Fore.LIGHTRED_EX }version: { version } | made by: { dev }{Fore.LIGHTWHITE_EX}''')
 
-def search_guns(query: str) -> dict:
-    """Search for guns matching the query."""
+def search_items(query: str, data_map: dict) -> dict:
+    """Search for items matching the query."""
     query = query.lower()
-    results = {k: v for k, v in gunIDMap.items() if query in v.lower() or query in str(k)}
+    results = {k: v for k, v in data_map.items() if query in v.lower() or query in str(k)}
     return results
 
-def display_results(query: str, results: dict, page: int, page_size: int = 10):
+def display_results(query: str, results: dict, page: int, additional_text: str = "", page_size: int = 10):
     """Display the search results."""
     os.system('cls')  # Clear the screen
-    displayWithoutOptions("Searching weapons...")
+    displayWithoutOptions("Searching items...")
+    print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} {additional_text}\n")
+    
+    if additional_text != "":
+        print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Input the NAME of the wanted item:\n")
 
-    print(f"Search: {query}")
+    print(f"{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Search: {query}")
     if not results:
         print(f"{ Fore.LIGHTRED_EX }No matches found.{Fore.LIGHTWHITE_EX}")
     else:
@@ -50,7 +54,7 @@ def display_results(query: str, results: dict, page: int, page_size: int = 10):
 
 def display_selection_menu(results: dict):
     """Display a menu for the user to select an option from the results."""
-    print("\nSelect an option by entering the corresponding number:")
+    print(f"\n{Fore.RED}[VORTEX]{Fore.LIGHTWHITE_EX} Select an option by entering the corresponding number:")
     for idx, (id, name) in enumerate(results.items(), start=1):
         print(f"{idx}. {id}: {name}")
     
@@ -63,19 +67,19 @@ def display_selection_menu(results: dict):
         else:
             print("Invalid choice, please try again.")
 
-def search_interface():
+def search_interface(data_map: dict, additional_text: str = ""):
     """Interactive search interface."""
     query = ""
     page = 0
     page_size = 10
 
     while True:
-        results = search_guns(query)
+        results = search_items(query, data_map)
         start_index = page * page_size
         end_index = start_index + page_size
         paginated_results = list(results.items())[start_index:end_index]
         
-        display_results(query, results, page, page_size)
+        display_results(query, results, page, additional_text, page_size)
         
         key = msvcrt.getch()
         if key == b'\x00':
